@@ -1,0 +1,1739 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5629E314B8F;
+	Wed,  9 Sep 2026 03:10:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.22
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788923463; cv=none; b=j3Q9tqOGGEd1uFuAtzkv708zqOJT4O1doQoK3a1Y0HuXzn7PsdW4sO3se/rasssoDZN5v9OlFXvqLwSDLz3ko7q0ToDclUV+O/V6dhTHUAu4jtSa3rAPPWVCdNoyjbPm5p7mvhOFt/I81uoVUqNKHKGSjUaqI5SGiU4qea837JM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788923463; c=relaxed/simple;
+	bh=SqGOECwVHFmocHLAkBrnfrFEMZkSNGwAm0dB2nZESwI=;
+	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=LVP5NtN1M2LAzQR06Dpnkw5My2L3geEVkm14Bt1nz+S+gYm6kUeIny8UQIcO34c4aLb1NyjIqDnW5X9SVnVb59BN9N7jrITsO2A7DvSXj/ObS1UvVNAIj8BGQL9tssnwexAl3OBh2fBqRWEV5FzKfIOgPEsw7h2sy+NhosNr1TI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=X0GGjrxA; arc=none smtp.client-ip=185.70.43.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="X0GGjrxA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788923453; x=1789182653;
+	bh=Ofh6fpcLN9XRqYRoCzFoB81MGxY2OaZ24p1y9iraXmw=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=X0GGjrxAW2d14VA9LGukwDvxPsFRTqwXVZcuw6TsXeFk9iAkwaK5v2bmggdcYvVGx
+	 3HNU2hCSjtfxILNKqZElO/wrBt83pYlTsCIZ8GxypbEV55Wg0g2o5upW+8aUcmhsTo
+	 7cz2QJ2KFfGkQaedSK4hwqvIOCzbxJCEFiUFci7cWb6U/Iku5etu6qsSCxV0c9/tPt
+	 uMcIaRUrGfbjWJTB9OJt1soCQ8F1Jllzuhm8g0Ppq2+h3CcF3TZdJ/nPQaic01ZB+1
+	 u56aAB/28wEcG20RviWlleq/2M2vPvh2FiYevu67Axvp8ENhQMrPjKrRKL3AkISjWn
+	 Pqjv/4nt0HEOw==
+Date: Wed, 09 Sep 2026 03:10:48 +0000
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Esteban Urrutia <esteuwu@proton.me>, Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org, Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: [PATCH v2 0/3] SM8450 IPA support
+Message-ID: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: 3b218d2646997f5d755b8356d77a73038258ec5f
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+This series has been tested on the following SoCs:
+- SM7475
+- SM8450
+- SM8475
+In these the modem works as expected and no crashes occur.
+
+Signed-off-by: Esteban Urrutia <esteuwu@proton.me>
+---
+Changes in v2:
+- Add missing resource limits for DMA and QDSS source groups.
+  - These are marked as unused downstream, but still have values written
+  to them.
+- Add Nazar as a co-developer.
+  - We developed independent implementations and are both working on
+  this series.
+- Add the IPA_MEM_MODEM_STATS_DROP memory region.
+- Pick tags.
+- Rebase against linux-next.
+- Remove comment in driver stating smem_size differences.
+  For both SM8450 and SM8475 SoCs:
+  - All devices based on these SoCs use an smem_size of 0x9000. [1]
+  - Specifying an smem_size of 0xb000 causes the modem to assert a
+  shared memory allocation failure. [2]
+- Remove overlapping optional memory regions.
+  - No comments from anyone regarding these, so remove them.
+- Reorder patches. (Dmitry, Krzysztof)
+- Sort iommus property in DT. (Krzysztof)
+- Specify actual IMEM base and size in DT. (Konrad)
+- Update commit messages and cover letter.
+- Link to v1: https://patch.msgid.link/20260622-sm8450-ipa-v1-0-532f0299f96=
+e@proton.me
+
+[1] https://github.com/sm8450-mainline/fdt
+[2] https://github.com/dopaemon/android_kernel_xiaomi_sm8450-devicetrees/co=
+mmit/0cff0b070363fb9a312ba6e66244898013e7038f
+
+To: Andrew Lunn <andrew+netdev@lunn.ch>
+To: "David S. Miller" <davem@davemloft.net>
+To: Eric Dumazet <edumazet@google.com>
+To: Jakub Kicinski <kuba@kernel.org>
+To: Paolo Abeni <pabeni@redhat.com>
+To: Rob Herring <robh@kernel.org>
+To: Krzysztof Kozlowski <krzk+dt@kernel.org>
+To: Conor Dooley <conor+dt@kernel.org>
+To: Alex Elder <elder@kernel.org>
+To: Bjorn Andersson <andersson@kernel.org>
+To: Konrad Dybcio <konradybcio@kernel.org>
+Cc: Nazar Kompanets <xlie7669@gmail.com>
+Cc: linux-arm-msm@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: phone-devel@vger.kernel.org
+
+---
+Esteban Urrutia (3):
+      dt-bindings: net: qcom,ipa: Add SM8450 compatible
+      net: ipa: Add IPA v5.1 configuration data
+      arm64: dts: qcom: sm8450: Add IPA node
+
+ .../devicetree/bindings/net/qcom,ipa.yaml          |   1 +
+ arch/arm64/boot/dts/qcom/sm8450.dtsi               |  59 ++-
+ drivers/net/ipa/Makefile                           |   2 +-
+ drivers/net/ipa/data/ipa_data-v5.1.c               | 476 +++++++++++++++++=
+++++
+ drivers/net/ipa/gsi_reg.c                          |   1 +
+ drivers/net/ipa/ipa_data.h                         |   1 +
+ drivers/net/ipa/ipa_main.c                         |   4 +
+ drivers/net/ipa/ipa_reg.c                          |   1 +
+ 8 files changed, 537 insertions(+), 8 deletions(-)
+---
+base-commit: a9d7ced84989ec05be09b4b8428759ef60450a0f
+change-id: 20260908-sm8450-ipa-4dfc931c8ce0
+
+Best regards,
+-- =20
+Esteban Urrutia <esteuwu@proton.me>
+
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-24417.protonmail.ch (mail-24417.protonmail.ch [109.224.244.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61193343D7F
+	for <devicetree@vger.kernel.org>; Wed,  9 Sep 2026 03:11:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.17
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788923485; cv=none; b=EwSG0q+q1WG8lRAaH7QSso9p9DcB8zkkk9BQ5fZE6RjDCn19TCtaBwjzOX1yQl/5TbMRmaCtqc1Gf8cW6rYSQ+Ce0Fc+4zjSMdmxPJwFkZHihc6EfoKPX4vJGOqrzrMLlfCK1ckPERJ92xn6EzQlIF3EHNT029w1uiEkeIhnRZ4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788923485; c=relaxed/simple;
+	bh=dLNKuhcrePHbBifLeDTkAyjnCHYYE/stTjBihrmk+bg=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=uM0p/kwYT49oRHlzi6MKjPbKHJXA9rGe5lwie5GgVmdxg3LQKSMG+fOzMn4+h3g5W+RNe1OJV6yGvPnpXvm3cfTwWlMUqRd4xf1mkFs+C0ttunaVLYe9jVnnjZhtJLMyK6MIKN2nBqfXRz/iSnsRiCud9/63XS8iOpaRN6Vsxqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=JS+ehv2o; arc=none smtp.client-ip=109.224.244.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="JS+ehv2o"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788923471; x=1789182671;
+	bh=6V5vNBbkmNPezVZefxzahR0ftBgmoG/UPsu/x9aLVH4=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=JS+ehv2oFu9q3QePjIySoIdMB2f791dLteUPVv8SjxqnZE5+uD0+l7w5+9aU9Z/qn
+	 8QjY3UVNfB5hLdF59Ug4dvrV6yNo0h7ibqmmkgwmbT7mxgzxMLOqZbtUZSxWeEE8G5
+	 u0vXXN/v9dNH6WKcj+CiePsw3AmNWiXH+vufP+nicVpmxJb/jU3erfZQZoJO/BYaZh
+	 kPFoHhAePSg75xxWBtRD8R8KeWVrc8N8S9bc1eqy8OOMgHaZsrDRD1FWtmX0YuZV1t
+	 qCbcuv2oqCQCHlLNVK007cC5PnMVPONdbm6f57Kg8G4tbDqsil7xmDbW04HqMJMsTg
+	 PLyiCH/tnUsgw==
+Date: Wed, 09 Sep 2026 03:11:04 +0000
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Esteban Urrutia <esteuwu@proton.me>, Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org, Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: [PATCH v2 1/3] dt-bindings: net: qcom,ipa: Add SM8450 compatible
+Message-ID: <20260909-sm8450-ipa-v2-1-2deb8b4e91a5@proton.me>
+In-Reply-To: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: aba9c28308fded0664a4deff4d2b230bb8215508
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Add support for the SM8450 SoC, which uses IPA v5.1.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Co-developed-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Esteban Urrutia <esteuwu@proton.me>
+---
+ Documentation/devicetree/bindings/net/qcom,ipa.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/net/qcom,ipa.yaml b/Document=
+ation/devicetree/bindings/net/qcom,ipa.yaml
+index 68ec76fe4473..db91bfaaf833 100644
+--- a/Documentation/devicetree/bindings/net/qcom,ipa.yaml
++++ b/Documentation/devicetree/bindings/net/qcom,ipa.yaml
+@@ -53,6 +53,7 @@ properties:
+           - qcom,sdx65-ipa
+           - qcom,sm6350-ipa
+           - qcom,sm8350-ipa
++          - qcom,sm8450-ipa
+           - qcom,sm8550-ipa
+       - items:
+           - enum:
+
+--=20
+2.55.0
+
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAE6A345ED9;
+	Wed,  9 Sep 2026 03:11:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.22
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788923499; cv=none; b=DM0Z9kOdCbsicN6bDHxU4YeQTczj/QlqzWQ1a0+Gl6ijo2KILgk9Wn99FLWLI8nNY1VAhSPT4hLA44GZ9BHZi/Oun1t0JUc/DQdrsxVUZkVB8twuWB3oNM7cnMKSwGXsAqcvY1/3XJfPENhB12pJcITOVnYYrKn2oYmAaA7k79Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788923499; c=relaxed/simple;
+	bh=BRwGrfU5Z0rAW7IvaEMnMp7b8lHMtIsZNJYMSdH1G9Y=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=U2P1AIipn/Tjp96g0RwWbL72QAKglyFAFqPVoYaSTmgHLCPMGjxrprBeUm3FJzhV/mfDwtq13GjtRU6S2CHo5SynBmt4pieZvHxpKD42rdAmqNfikIfq6xDUscxy6Ad3ELXgXjRrsDU/FYHqtjOy58Xq7Bd2US0inMAf4ymJCBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=IBqNukQs; arc=none smtp.client-ip=185.70.43.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="IBqNukQs"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788923489; x=1789182689;
+	bh=5nkK3I8dOESPdEnrk5253yGEG1lECIstukh3Bvwj5hI=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=IBqNukQs7tEbaitXf+CRlBCmQ3akpJU8O0UFozqoXfpUTgmrvxeQcvLQ2se/Sp+YF
+	 hCLLVBpmMSfz5DomNbyZwvw1ci/8pAVJjARyl2+MxkOQcrQ1yrE+BNhRXkz4BoNZcx
+	 uK1FxYWzdKZ+XyX4WKiTsQgt163xtmDkL3u25dOibyqzHF5HMUTDuXAqGvMluJzqQX
+	 VkR4nb9kS3XDTL1efGRYxK8vNtanegiejYIAUzDedc4Zgn8GP6Vkh+UD6B6qLgKos9
+	 fUJnl9qaRkiTjQCpryC/JSzhP50lVQhSklGCWOWDFbO+pBii7MfEdogqnZbf92NsUM
+	 5TvZkJueGQxvg==
+Date: Wed, 09 Sep 2026 03:11:22 +0000
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Esteban Urrutia <esteuwu@proton.me>, Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org
+Subject: [PATCH v2 2/3] net: ipa: Add IPA v5.1 configuration data
+Message-ID: <20260909-sm8450-ipa-v2-2-2deb8b4e91a5@proton.me>
+In-Reply-To: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: 0a9f974822474a4b8d402165d845216a156a5f2f
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Add the configuration data required for IPA v5.1, which is used in the
+Qualcomm SM8450 SoC.
+
+Co-developed-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Esteban Urrutia <esteuwu@proton.me>
+---
+ drivers/net/ipa/Makefile             |   2 +-
+ drivers/net/ipa/data/ipa_data-v5.1.c | 476 +++++++++++++++++++++++++++++++=
+++++
+ drivers/net/ipa/gsi_reg.c            |   1 +
+ drivers/net/ipa/ipa_data.h           |   1 +
+ drivers/net/ipa/ipa_main.c           |   4 +
+ drivers/net/ipa/ipa_reg.c            |   1 +
+ 6 files changed, 484 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ipa/Makefile b/drivers/net/ipa/Makefile
+index e148ec3c1a10..d4995c2e8ca0 100644
+--- a/drivers/net/ipa/Makefile
++++ b/drivers/net/ipa/Makefile
+@@ -7,7 +7,7 @@ IPA_REG_VERSIONS=09:=3D=093.1 3.5.1 4.2 4.5 4.7 4.9 4.11 5.=
+0 5.5
+ # Some IPA versions can reuse another set of GSI register definitions.
+ GSI_REG_VERSIONS=09:=3D=093.1 3.5.1 4.0 4.5 4.9 4.11 5.0
+=20
+-IPA_DATA_VERSIONS=09:=3D=093.1 3.5.1 4.2 4.5 4.7 4.9 4.11 5.0 5.2 5.5
++IPA_DATA_VERSIONS=09:=3D=093.1 3.5.1 4.2 4.5 4.7 4.9 4.11 5.0 5.1 5.2 5.5
+=20
+ obj-$(CONFIG_QCOM_IPA)=09+=3D=09ipa.o
+=20
+diff --git a/drivers/net/ipa/data/ipa_data-v5.1.c b/drivers/net/ipa/data/ip=
+a_data-v5.1.c
+new file mode 100644
+index 000000000000..7d7bc193b774
+--- /dev/null
++++ b/drivers/net/ipa/data/ipa_data-v5.1.c
+@@ -0,0 +1,476 @@
++// SPDX-License-Identifier: GPL-2.0
++
++/* Copyright (C) 2023-2024 Linaro Ltd. */
++/* Copyright (C) 2026 Nazar Kompanets <xlie7669@gmail.com> */
++/* Copyright (C) 2026 Esteban Urrutia <esteuwu@proton.me> */
++
++#include <linux/array_size.h>
++#include <linux/log2.h>
++
++#include "../ipa_data.h"
++#include "../ipa_endpoint.h"
++#include "../ipa_mem.h"
++#include "../ipa_version.h"
++
++/** enum ipa_resource_type - IPA resource types for an SoC having IPA v5.1=
+ */
++enum ipa_resource_type {
++=09/* Source resource types; first must have value 0 */
++=09IPA_RESOURCE_TYPE_SRC_PKT_CONTEXTS=09=09=3D 0,
++=09IPA_RESOURCE_TYPE_SRC_DESCRIPTOR_LISTS,
++=09IPA_RESOURCE_TYPE_SRC_DESCRIPTOR_BUFF,
++=09IPA_RESOURCE_TYPE_SRC_HPS_DMARS,
++=09IPA_RESOURCE_TYPE_SRC_ACK_ENTRIES,
++
++=09/* Destination resource types; first must have value 0 */
++=09IPA_RESOURCE_TYPE_DST_DATA_SECTORS=09=09=3D 0,
++=09IPA_RESOURCE_TYPE_DST_DPS_DMARS,
++=09IPA_RESOURCE_TYPE_DST_ULSO_SEGMENTS,
++};
++
++/* Resource groups used for an SoC having IPA v5.1 */
++enum ipa_rsrc_group_id {
++=09/* Source resource group identifiers */
++=09IPA_RSRC_GROUP_SRC_UL=09=09=09=09=3D 0,
++=09IPA_RSRC_GROUP_SRC_DL,
++=09IPA_RSRC_GROUP_SRC_DMA,
++=09IPA_RSRC_GROUP_SRC_QDSS,
++=09IPA_RSRC_GROUP_SRC_URLLC,
++=09IPA_RSRC_GROUP_SRC_U_RX_QC,
++=09IPA_RSRC_GROUP_SRC_COUNT,=09/* Last in set; not a source group */
++
++=09/* Destination resource group identifiers */
++=09IPA_RSRC_GROUP_DST_UL=09=09=09=09=3D 0,
++=09IPA_RSRC_GROUP_DST_DL,
++=09IPA_RSRC_GROUP_DST_UNUSED_2,
++=09IPA_RSRC_GROUP_DST_UNUSED_3,
++=09IPA_RSRC_GROUP_DST_UNUSED_4,
++=09IPA_RSRC_GROUP_DST_UC,
++=09IPA_RSRC_GROUP_DST_DRB_IP,
++=09IPA_RSRC_GROUP_DST_COUNT,=09/* Last; not a destination group */
++};
++
++/* QSB configuration data for an SoC having IPA v5.1 */
++static const struct ipa_qsb_data ipa_qsb_data[] =3D {
++=09[IPA_QSB_MASTER_DDR] =3D {
++=09=09.max_writes=09=09=3D 0,
++=09=09.max_reads=09=09=3D 0,=09/* no limit (hardware max) */
++=09=09.max_reads_beats=09=3D 0,
++=09},
++=09[IPA_QSB_MASTER_PCIE] =3D {
++=09=09.max_writes=09=09=3D 0,
++=09=09.max_reads=09=09=3D 0,=09/* no limit (hardware max) */
++=09=09.max_reads_beats=09=3D 0,
++=09},
++};
++
++/* Endpoint configuration data for an SoC having IPA v5.1 */
++static const struct ipa_gsi_endpoint_data ipa_gsi_endpoint_data[] =3D {
++=09[IPA_ENDPOINT_AP_COMMAND_TX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_AP,
++=09=09.channel_id=09=3D 12,
++=09=09.endpoint_id=09=3D 14,
++=09=09.toward_ipa=09=3D true,
++=09=09.channel =3D {
++=09=09=09.tre_count=09=3D 256,
++=09=09=09.event_count=09=3D 256,
++=09=09=09.tlv_count=09=3D 20,
++=09=09},
++=09=09.endpoint =3D {
++=09=09=09.config =3D {
++=09=09=09=09.resource_group=09=3D IPA_RSRC_GROUP_SRC_UL,
++=09=09=09=09.dma_mode=09=3D true,
++=09=09=09=09.dma_endpoint=09=3D IPA_ENDPOINT_AP_LAN_RX,
++=09=09=09=09.tx =3D {
++=09=09=09=09=09.seq_type =3D IPA_SEQ_DMA,
++=09=09=09=09},
++=09=09=09},
++=09=09},
++=09},
++=09[IPA_ENDPOINT_AP_LAN_RX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_AP,
++=09=09.channel_id=09=3D 13,
++=09=09.endpoint_id=09=3D 16,
++=09=09.toward_ipa=09=3D false,
++=09=09.channel =3D {
++=09=09=09.tre_count=09=3D 256,
++=09=09=09.event_count=09=3D 256,
++=09=09=09.tlv_count=09=3D 9,
++=09=09},
++=09=09.endpoint =3D {
++=09=09=09.config =3D {
++=09=09=09=09.resource_group=09=3D IPA_RSRC_GROUP_DST_UL,
++=09=09=09=09.aggregation=09=3D true,
++=09=09=09=09.status_enable=09=3D true,
++=09=09=09=09.rx =3D {
++=09=09=09=09=09.buffer_size=09=3D 8192,
++=09=09=09=09=09.pad_align=09=3D ilog2(sizeof(u32)),
++=09=09=09=09=09.aggr_time_limit =3D 500,
++=09=09=09=09},
++=09=09=09},
++=09=09},
++=09},
++=09[IPA_ENDPOINT_AP_MODEM_TX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_AP,
++=09=09.channel_id=09=3D 11,
++=09=09.endpoint_id=09=3D 2,
++=09=09.toward_ipa=09=3D true,
++=09=09.channel =3D {
++=09=09=09.tre_count=09=3D 512,
++=09=09=09.event_count=09=3D 512,
++=09=09=09.tlv_count=09=3D 25,
++=09=09},
++=09=09.endpoint =3D {
++=09=09=09.filter_support=09=3D true,
++=09=09=09.config =3D {
++=09=09=09=09.resource_group=09=3D IPA_RSRC_GROUP_SRC_UL,
++=09=09=09=09.checksum       =3D true,
++=09=09=09=09.qmap=09=09=3D true,
++=09=09=09=09.status_enable=09=3D true,
++=09=09=09=09.tx =3D {
++=09=09=09=09=09.seq_type =3D IPA_SEQ_2_PASS_SKIP_LAST_UC,
++=09=09=09=09=09.status_endpoint =3D
++=09=09=09=09=09=09IPA_ENDPOINT_MODEM_AP_RX,
++=09=09=09=09},
++=09=09=09},
++=09=09},
++=09},
++=09[IPA_ENDPOINT_AP_MODEM_RX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_AP,
++=09=09.channel_id=09=3D 1,
++=09=09.endpoint_id=09=3D 23,
++=09=09.toward_ipa=09=3D false,
++=09=09.channel =3D {
++=09=09=09.tre_count=09=3D 256,
++=09=09=09.event_count=09=3D 256,
++=09=09=09.tlv_count=09=3D 9,
++=09=09},
++=09=09.endpoint =3D {
++=09=09=09.config =3D {
++=09=09=09=09.resource_group=09=3D IPA_RSRC_GROUP_DST_UL,
++=09=09=09=09.checksum       =3D true,
++=09=09=09=09.qmap=09=09=3D true,
++=09=09=09=09.aggregation=09=3D true,
++=09=09=09=09.rx =3D {
++=09=09=09=09=09.buffer_size=09=3D 8192,
++=09=09=09=09=09.aggr_time_limit =3D 500,
++=09=09=09=09=09.aggr_close_eof=09=3D true,
++=09=09=09=09},
++=09=09=09},
++=09=09},
++=09},
++=09[IPA_ENDPOINT_MODEM_AP_TX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_MODEM,
++=09=09.channel_id=09=3D 0,
++=09=09.endpoint_id=09=3D 12,
++=09=09.toward_ipa=09=3D true,
++=09=09.endpoint =3D {
++=09=09=09.filter_support=09=3D true,
++=09=09},
++=09},
++=09[IPA_ENDPOINT_MODEM_AP_RX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_MODEM,
++=09=09.channel_id=09=3D 7,
++=09=09.endpoint_id=09=3D 21,
++=09=09.toward_ipa=09=3D false,
++=09},
++=09[IPA_ENDPOINT_MODEM_DL_NLO_TX] =3D {
++=09=09.ee_id=09=09=3D GSI_EE_MODEM,
++=09=09.channel_id=09=3D 2,
++=09=09.endpoint_id=09=3D 15,
++=09=09.toward_ipa=09=3D true,
++=09=09.endpoint =3D {
++=09=09=09.filter_support=09=3D true,
++=09=09},
++=09},
++};
++
++/* Source resource configuration data for an SoC having IPA v5.1 */
++static const struct ipa_resource ipa_resource_src[] =3D {
++=09[IPA_RESOURCE_TYPE_SRC_PKT_CONTEXTS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_SRC_UL] =3D {
++=09=09=09.min =3D 7,=09.max =3D 12,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_URLLC] =3D {
++=09=09=09.min =3D 1,=09.max =3D 63,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_U_RX_QC] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_SRC_DESCRIPTOR_LISTS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_SRC_UL] =3D {
++=09=09=09.min =3D 21,=09.max =3D 21,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_URLLC] =3D {
++=09=09=09.min =3D 10,=09.max =3D 10,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_SRC_DESCRIPTOR_BUFF] =3D {
++=09=09.limits[IPA_RSRC_GROUP_SRC_UL] =3D {
++=09=09=09.min =3D 33,=09.max =3D 33,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_URLLC] =3D {
++=09=09=09.min =3D 20,=09.max =3D 20,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_SRC_HPS_DMARS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_SRC_UL] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09=09/* Marked as unused downstream */
++=09=09.limits[IPA_RSRC_GROUP_SRC_DMA] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09=09/* Marked as unused downstream */
++=09=09.limits[IPA_RSRC_GROUP_SRC_QDSS] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_URLLC] =3D {
++=09=09=09.min =3D 1,=09.max =3D 63,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_U_RX_QC] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_SRC_ACK_ENTRIES] =3D {
++=09=09.limits[IPA_RSRC_GROUP_SRC_UL] =3D {
++=09=09=09.min =3D 38,=09.max =3D 38,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_SRC_URLLC] =3D {
++=09=09=09.min =3D 16,=09.max =3D 16,
++=09=09},
++=09},
++};
++
++/* Destination resource configuration data for an SoC having IPA v5.1 */
++static const struct ipa_resource ipa_resource_dst[] =3D {
++=09[IPA_RESOURCE_TYPE_DST_DATA_SECTORS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_DST_UL] =3D {
++=09=09=09.min =3D 6,=09.max =3D 6,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_DST_DL] =3D {
++=09=09=09.min =3D 5,=09.max =3D 5,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_DST_DRB_IP] =3D {
++=09=09=09.min =3D 39,=09.max =3D 39,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_DST_DPS_DMARS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_DST_UL] =3D {
++=09=09=09.min =3D 0,=09.max =3D 3,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_DST_DL] =3D {
++=09=09=09.min =3D 0,=09.max =3D 3,
++=09=09},
++=09},
++=09[IPA_RESOURCE_TYPE_DST_ULSO_SEGMENTS] =3D {
++=09=09.limits[IPA_RSRC_GROUP_DST_UL] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09=09.limits[IPA_RSRC_GROUP_DST_DL] =3D {
++=09=09=09.min =3D 0,=09.max =3D 63,
++=09=09},
++=09},
++};
++
++/* Resource configuration data for an SoC having IPA v5.1 */
++static const struct ipa_resource_data ipa_resource_data =3D {
++=09.rsrc_group_dst_count=09=3D IPA_RSRC_GROUP_DST_COUNT,
++=09.rsrc_group_src_count=09=3D IPA_RSRC_GROUP_SRC_COUNT,
++=09.resource_src_count=09=3D ARRAY_SIZE(ipa_resource_src),
++=09.resource_src=09=09=3D ipa_resource_src,
++=09.resource_dst_count=09=3D ARRAY_SIZE(ipa_resource_dst),
++=09.resource_dst=09=09=3D ipa_resource_dst,
++};
++
++/* IPA-resident memory region data for an SoC having IPA v5.1 */
++static const struct ipa_mem ipa_mem_local_data[] =3D {
++=09{
++=09=09.id=09=09=3D IPA_MEM_UC_EVENT_RING,
++=09=09.offset=09=09=3D 0x0000,
++=09=09.size=09=09=3D 0x1000,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_UC_SHARED,
++=09=09.offset=09=09=3D 0x1000,
++=09=09.size=09=09=3D 0x0080,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_UC_INFO,
++=09=09.offset=09=09=3D 0x1080,
++=09=09.size=09=09=3D 0x0200,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V4_FILTER_HASHED,
++=09=09.offset=09=09=3D 0x1288,
++=09=09.size=09=09=3D 0x0078,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V4_FILTER,
++=09=09.offset=09=09=3D 0x1308,
++=09=09.size=09=09=3D 0x0078,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V6_FILTER_HASHED,
++=09=09.offset=09=09=3D 0x1388,
++=09=09.size=09=09=3D 0x0078,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V6_FILTER,
++=09=09.offset=09=09=3D 0x1408,
++=09=09.size=09=09=3D 0x0078,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V4_ROUTE_HASHED,
++=09=09.offset=09=09=3D 0x1488,
++=09=09.size=09=09=3D 0x0098,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V4_ROUTE,
++=09=09.offset=09=09=3D 0x1528,
++=09=09.size=09=09=3D 0x0098,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V6_ROUTE_HASHED,
++=09=09.offset=09=09=3D 0x15c8,
++=09=09.size=09=09=3D 0x0098,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_V6_ROUTE,
++=09=09.offset=09=09=3D 0x1668,
++=09=09.size=09=09=3D 0x0098,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_MODEM_HEADER,
++=09=09.offset=09=09=3D 0x1708,
++=09=09.size=09=09=3D 0x0240,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_AP_HEADER,
++=09=09.offset=09=09=3D 0x1948,
++=09=09.size=09=09=3D 0x01e0,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_MODEM_PROC_CTX,
++=09=09.offset=09=09=3D 0x1b40,
++=09=09.size=09=09=3D 0x0b20,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_AP_PROC_CTX,
++=09=09.offset=09=09=3D 0x2660,
++=09=09.size=09=09=3D 0x0200,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_STATS_QUOTA_MODEM,
++=09=09.offset=09=09=3D 0x2868,
++=09=09.size=09=09=3D 0x0060,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_STATS_QUOTA_AP,
++=09=09.offset=09=09=3D 0x28c8,
++=09=09.size=09=09=3D 0x0048,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_STATS_TETHERING,
++=09=09.offset=09=09=3D 0x2910,
++=09=09.size=09=09=3D 0x03c0,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_STATS_FILTER_ROUTE,
++=09=09.offset=09=09=3D 0x2cd0,
++=09=09.size=09=09=3D 0x0ba0,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_STATS_DROP,
++=09=09.offset=09=09=3D 0x3870,
++=09=09.size=09=09=3D 0x0020,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_MODEM,
++=09=09.offset=09=09=3D 0x3898,
++=09=09.size=09=09=3D 0x0d48,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_NAT_TABLE,
++=09=09.offset=09=09=3D 0x45e0,
++=09=09.size=09=09=3D 0x0900,
++=09=09.canary_count=09=3D 0,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_PDN_CONFIG,
++=09=09.offset=09=09=3D 0x4ee8,
++=09=09.size=09=09=3D 0x0100,
++=09=09.canary_count=09=3D 2,
++=09},
++=09{
++=09=09.id=09=09=3D IPA_MEM_MODEM_STATS_DROP,
++=09=09.offset=09=09=3D 0x4fe8,
++=09=09.size=09=09=3D 0x0018,
++=09=09.canary_count=09=3D 0,
++=09},
++};
++
++/* Memory configuration data for an SoC having IPA v5.1 */
++static const struct ipa_mem_data ipa_mem_data =3D {
++=09.local_count=09=3D ARRAY_SIZE(ipa_mem_local_data),
++=09.local=09=09=3D ipa_mem_local_data,
++=09.imem_addr=09=3D 0x146a8000,
++=09.imem_size=09=3D 0x00002000,
++=09.smem_size=09=3D 0x00009000,
++};
++
++/* Interconnect rates are in 1000 byte/second units */
++static const struct ipa_interconnect_data ipa_interconnect_data[] =3D {
++=09{
++=09=09.name=09=09=09=3D "memory",
++=09=09.peak_bandwidth=09=09=3D 1900000,=09/* 1.9 GBps */
++=09=09.average_bandwidth=09=3D 590000,=09/* 590 MBps */
++=09},
++=09/* Average rate is unused for the next interconnect */
++=09{
++=09=09.name=09=09=09=3D "config",
++=09=09.peak_bandwidth=09=09=3D 76800,=09/* 76.8 MBps */
++=09=09.average_bandwidth=09=3D 0,=09=09/* unused */
++=09},
++};
++
++/* Clock and interconnect configuration data for an SoC having IPA v5.1 */
++static const struct ipa_power_data ipa_power_data =3D {
++=09.core_clock_rate=09=3D 120 * 1000 * 1000,=09/* Hz */
++=09.interconnect_count=09=3D ARRAY_SIZE(ipa_interconnect_data),
++=09.interconnect_data=09=3D ipa_interconnect_data,
++};
++
++/* Configuration data for an SoC having IPA v5.1. */
++const struct ipa_data ipa_data_v5_1 =3D {
++=09.version=09=09=3D IPA_VERSION_5_1,
++=09.qsb_count=09=09=3D ARRAY_SIZE(ipa_qsb_data),
++=09.qsb_data=09=09=3D ipa_qsb_data,
++=09.modem_route_count=09=3D 11,
++=09.endpoint_count=09=09=3D ARRAY_SIZE(ipa_gsi_endpoint_data),
++=09.endpoint_data=09=09=3D ipa_gsi_endpoint_data,
++=09.resource_data=09=09=3D &ipa_resource_data,
++=09.mem_data=09=09=3D &ipa_mem_data,
++=09.power_data=09=09=3D &ipa_power_data,
++};
+diff --git a/drivers/net/ipa/gsi_reg.c b/drivers/net/ipa/gsi_reg.c
+index e13cf835a013..a57072ba4bef 100644
+--- a/drivers/net/ipa/gsi_reg.c
++++ b/drivers/net/ipa/gsi_reg.c
+@@ -110,6 +110,7 @@ static const struct regs *gsi_regs(struct gsi *gsi)
+ =09=09return &gsi_regs_v4_11;
+=20
+ =09case IPA_VERSION_5_0:
++=09case IPA_VERSION_5_1:
+ =09case IPA_VERSION_5_2:
+ =09case IPA_VERSION_5_5:
+ =09=09return &gsi_regs_v5_0;
+diff --git a/drivers/net/ipa/ipa_data.h b/drivers/net/ipa/ipa_data.h
+index 3eb9dc2ce339..fe6f7d5bfe88 100644
+--- a/drivers/net/ipa/ipa_data.h
++++ b/drivers/net/ipa/ipa_data.h
+@@ -253,6 +253,7 @@ extern const struct ipa_data ipa_data_v4_7;
+ extern const struct ipa_data ipa_data_v4_9;
+ extern const struct ipa_data ipa_data_v4_11;
+ extern const struct ipa_data ipa_data_v5_0;
++extern const struct ipa_data ipa_data_v5_1;
+ extern const struct ipa_data ipa_data_v5_2;
+ extern const struct ipa_data ipa_data_v5_5;
+=20
+diff --git a/drivers/net/ipa/ipa_main.c b/drivers/net/ipa/ipa_main.c
+index 14ac2d2faf7c..84bec461d22c 100644
+--- a/drivers/net/ipa/ipa_main.c
++++ b/drivers/net/ipa/ipa_main.c
+@@ -672,6 +672,10 @@ static const struct of_device_id ipa_match[] =3D {
+ =09=09.compatible=09=3D "qcom,sdx65-ipa",
+ =09=09.data=09=09=3D &ipa_data_v5_0,
+ =09},
++=09{
++=09=09.compatible=09=3D "qcom,sm8450-ipa",
++=09=09.data=09=09=3D &ipa_data_v5_1,
++=09},
+ =09{
+ =09=09.compatible=09=3D "qcom,milos-ipa",
+ =09=09.data=09=09=3D &ipa_data_v5_2,
+diff --git a/drivers/net/ipa/ipa_reg.c b/drivers/net/ipa/ipa_reg.c
+index 30bd69f4c147..5f22ca6295b1 100644
+--- a/drivers/net/ipa/ipa_reg.c
++++ b/drivers/net/ipa/ipa_reg.c
+@@ -125,6 +125,7 @@ static const struct regs *ipa_regs(enum ipa_version ver=
+sion)
+ =09case IPA_VERSION_4_11:
+ =09=09return &ipa_regs_v4_11;
+ =09case IPA_VERSION_5_0:
++=09case IPA_VERSION_5_1:
+ =09case IPA_VERSION_5_2:
+ =09=09return &ipa_regs_v5_0;
+ =09case IPA_VERSION_5_5:
+
+--=20
+2.55.0
+
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-24417.protonmail.ch (mail-24417.protonmail.ch [109.224.244.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 417C12F5337;
+	Wed,  9 Sep 2026 03:11:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.17
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788923515; cv=none; b=ZsM73wN/p5naqFnztsXZraxPnNXwwykBziILlbrtPIsaXDiFfeUtn7WkMRoiUz2F2lDI4R2sHeMaRtT0v7TDfWZtuObKfFcShY1GN1Wq8inm3UDmsN8plccDCr+WeFYQdTBS+8dANzTzQireonOCXWmAGW0ksN6+P6E8KqzaIUQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788923515; c=relaxed/simple;
+	bh=X7A6ojzz9jLweLIbQWl37phoYRhtbnjKLl8m+DfmcRQ=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Y78fCh4eSiBPs5CJ0IktciEd9VHoOF0/Ka1e1JZFwbt9ZlRPWgp+cyuO38bD/MYPUMJoeS8/LopFGXBP+jRq57aqPjOQYcwXWTO1BfJI8LUD3TqbxKWJIjKnCRu1nyw9RRiuaRBVqT+nrEIA5zJLYt8NBKTQ5exJMBZMd6Squw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=ZewXl7t4; arc=none smtp.client-ip=109.224.244.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="ZewXl7t4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788923507; x=1789182707;
+	bh=uTyRo5++uD9VOWNFI9Qj67BwgOEdeIX49Io4VvHWzn0=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=ZewXl7t4iN6BherGDbIJyRFYRNdCqFL+LTB4QXlA+/Wz4aqmZfZY6Bed1oAmHT0Df
+	 bE3COl5Uo5nkh0prXonKuN/xAKJyEUhDDh1/Ct2aIngae8d7w5WLvAfG7FARa0glyQ
+	 1E+4CIiswxP3AHiaQ4qQ/6nCj/AhSZccttTAs3jmDEh4dyFqqWABV1gBIz2p4l/R5X
+	 ELrWmQB05iXJBgnGdRYz/CTrMZ/e+j2s/eP3FCkHLsEuvAcP85tShknUNExMoBYup7
+	 +4ihSw8ohw2iZEDKcYwDtYSVVLVNznD3P0xZ69OL+iAmlQdM8dn4NrQHAefuLQqJYW
+	 m7CMYgNir5BJA==
+Date: Wed, 09 Sep 2026 03:11:39 +0000
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Esteban Urrutia <esteuwu@proton.me>, Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org
+Subject: [PATCH v2 3/3] arm64: dts: qcom: sm8450: Add IPA node
+Message-ID: <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me>
+In-Reply-To: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: 07fb0d36c9eba0c0c5ab037e212d75d3f31050e9
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Add the description of the IPA block in the SM8450 SoC.
+
+Co-developed-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Nazar Kompanets <xlie7669@gmail.com>
+Signed-off-by: Esteban Urrutia <esteuwu@proton.me>
+---
+ arch/arm64/boot/dts/qcom/sm8450.dtsi | 59 +++++++++++++++++++++++++++++++-=
+----
+ 1 file changed, 52 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/qcom/sm8450.dtsi b/arch/arm64/boot/dts/qco=
+m/sm8450.dtsi
+index b8793482b181..95b6fd22a846 100644
+--- a/arch/arm64/boot/dts/qcom/sm8450.dtsi
++++ b/arch/arm64/boot/dts/qcom/sm8450.dtsi
+@@ -2625,6 +2625,47 @@ adreno_smmu: iommu@3da0000 {
+ =09=09=09dma-coherent;
+ =09=09};
+=20
++=09=09ipa: ipa@3f40000 {
++=09=09=09compatible =3D "qcom,sm8450-ipa";
++
++=09=09=09reg =3D <0 0x3f40000 0 0x10000>,
++=09=09=09      <0 0x3f50000 0 0x5000>,
++=09=09=09      <0 0x3e04000 0 0xfc000>;
++=09=09=09reg-names =3D "ipa-reg",
++=09=09=09=09    "ipa-shared",
++=09=09=09=09    "gsi";
++=09=09=09iommus =3D <&apps_smmu 0x5c0 0x0>,
++=09=09=09=09 <&apps_smmu 0x5c2 0x0>;
++
++=09=09=09interrupts-extended =3D <&intc GIC_SPI 654 IRQ_TYPE_EDGE_RISING>,
++=09=09=09=09=09      <&intc GIC_SPI 432 IRQ_TYPE_LEVEL_HIGH>,
++=09=09=09=09=09      <&ipa_smp2p_in 0 IRQ_TYPE_EDGE_RISING>,
++=09=09=09=09=09      <&ipa_smp2p_in 1 IRQ_TYPE_EDGE_RISING>;
++=09=09=09interrupt-names =3D "ipa",
++=09=09=09=09=09  "gsi",
++=09=09=09=09=09  "ipa-clock-query",
++=09=09=09=09=09  "ipa-setup-ready";
++
++=09=09=09clocks =3D <&rpmhcc RPMH_IPA_CLK>;
++=09=09=09clock-names =3D "core";
++
++=09=09=09interconnects =3D <&aggre2_noc MASTER_IPA 0 &mc_virt SLAVE_EBI1 0=
+>,
++=09=09=09=09=09<&gem_noc MASTER_APPSS_PROC 0 &config_noc SLAVE_IPA_CFG 0>;
++=09=09=09interconnect-names =3D "memory",
++=09=09=09=09=09     "config";
++
++=09=09=09qcom,qmp =3D <&aoss_qmp>;
++
++=09=09=09qcom,smem-states =3D <&ipa_smp2p_out 0>,
++=09=09=09=09=09   <&ipa_smp2p_out 1>;
++=09=09=09qcom,smem-state-names =3D "ipa-clock-enabled-valid",
++=09=09=09=09=09=09"ipa-clock-enabled";
++
++=09=09=09sram =3D <&ipa_modem_tables>;
++
++=09=09=09status =3D "disabled";
++=09=09};
++
+ =09=09usb_1_hsphy: phy@88e3000 {
+ =09=09=09compatible =3D "qcom,sm8450-usb-hs-phy",
+ =09=09=09=09     "qcom,usb-snps-hs-7nm-phy";
+@@ -4957,21 +4998,25 @@ cti@13900000 {
+ =09=09=09clock-names =3D "apb_pclk";
+ =09=09};
+=20
+-=09=09sram@146aa000 {
++=09=09sram@14680000 {
+ =09=09=09compatible =3D "qcom,sm8450-imem", "syscon", "simple-mfd";
+-=09=09=09reg =3D <0 0x146aa000 0 0x1000>;
+-=09=09=09ranges =3D <0 0 0x146aa000 0x1000>;
++=09=09=09reg =3D <0 0x14680000 0 0x40000>;
++=09=09=09ranges =3D <0 0 0x14680000 0x40000>;
+=20
+ =09=09=09#address-cells =3D <1>;
+ =09=09=09#size-cells =3D <1>;
+=20
+-=09=09=09minidump_config: minidump-sram@1c {
+-=09=09=09=09reg =3D <0x1c 0x4>;
++=09=09=09ipa_modem_tables: modem-tables@28000 {
++=09=09=09=09reg =3D <0x28000 0x2000>;
++=09=09=09};
++
++=09=09=09minidump_config: minidump-sram@2a01c {
++=09=09=09=09reg =3D <0x2a01c 0x4>;
+ =09=09=09};
+=20
+-=09=09=09pil-reloc@94c {
++=09=09=09pil-reloc@2a94c {
+ =09=09=09=09compatible =3D "qcom,pil-reloc-info";
+-=09=09=09=09reg =3D <0x94c 0xc8>;
++=09=09=09=09reg =3D <0x2a94c 0xc8>;
+ =09=09=09};
+ =09=09};
+=20
+
+--=20
+2.55.0
+
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5246323392C;
+	Wed,  9 Sep 2026 03:12:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.22
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788923580; cv=none; b=O0imSgssCWE1ML7+Tq9L+J3UI/kaM+eHgi2W9yNVMSgDDXybFi5492DcP9x+SOry71AU5e1S5KPcH0E0Pgt3L0hibhyhzLmHPX1MpdqYDXggOOLXSnTk3pk+Vux2hKtAF/sXy6BudE/JeQLRu7wFxl6TTsh7ColzELAn5MTJqDk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788923580; c=relaxed/simple;
+	bh=tkUwBDLl1pphmVwoLRWKK2ZKL9nOCDOtewEZE1wKjzg=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=PE8CyPrZhadwtAw9gbyjTMwzbxtUlAkHLdoxlXGAMaXScMz4BVl2BmsoE8BkT489Pp+OHtfYeDlrd0cW23KkhAmweY8vFeP85uPXUKOxkdbgxB7IGDjPw59CPXCuVhhrQQGZAZCmN5tsY7p4BlF4sXeHjVexeRc+bWG4QRLtZf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=OeMatQIy; arc=none smtp.client-ip=185.70.43.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="OeMatQIy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788923575; x=1789182775;
+	bh=tkUwBDLl1pphmVwoLRWKK2ZKL9nOCDOtewEZE1wKjzg=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=OeMatQIyaedjDkFPwplhgJcypFNuQmyUAkEEaJ1pX3Vabg2kwkxOcCblSUHY5xnxh
+	 7Tg19dv5R1YehZKqSrzMmeC6cS17l/G94U+fmNGFB+JNT5+oYKjDevnJ4sEPrgNz0H
+	 pL7mZhRtkcXpJKUBYZhzllRU85zEQ2ibJrulepV4y9DQiaFEPGh74UuoVHt4ZJIlGw
+	 qSsyrTL9riPnj6vwJFPUSbuf9aSsorH569Oy8Gx0xj8cDA10gSGvSnrxCTDpPpnsOh
+	 +BYtHmW4Qgo7rbuMmZlG/Uc6QVpFiQhCizw2o5HsHh2IPHfwmrbenEo0q1MuPrMPg0
+	 Txef+190HSJww==
+Date: Wed, 09 Sep 2026 03:12:51 +0000
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org, Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: Re: [PATCH v2 0/3] SM8450 IPA support
+Message-ID: <fa9794e3-d79e-4d77-8166-492d992154b4@proton.me>
+In-Reply-To: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: 2e84b6d89f5157f0eded2a3a156a9badf51a4f33
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 9/9/26 12:10 AM, Esteban Urrutia wrote:
+> This series has been tested on the following SoCs:
+> - SM7475
+> - SM8450
+> - SM8475
+> In these the modem works as expected and no crashes occur.
+
+I forgot to mention that this series depends on the following patch:
+https://lore.kernel.org/all/20260909-ipa-modem-drop-v1-1-0c9664f09c4a@proto=
+n.me/
+
+Regards,
+Esteban
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E44A367F25;
+	Wed,  9 Sep 2026 18:12:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788977528; cv=none; b=ioNlIy+pw+CrNFAu3QUBUD33LXVlvgVux4o6AS8alqON3EyjQEya+tPMWZtfSvit2eyHLF/JSnPQWRlD3PtaMgfBe8viNchuaI65qBuHv0/tVCv/CEIzkSj5idRaPcuQ919QYHJ5xRv2tUNRCLbJn94msml9ur3Hfp755VHverU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788977528; c=relaxed/simple;
+	bh=9zPZ6G7kkcAtdLbZg+dhbXdH7HfF9/56YhLkUXcpxg4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fzWP4EDfXhwFomuNdu0t33LijcIB66PopctKfDY0KzZB1TUTcPzMMh7aw/nl4tkIjf/y1DosAwUcgojb4+7dUGaZYyfkrBAfEBBVjmwWz1yUYNfHgsdP57QXL/yN+9YBiSx5M1p8ZG3nzR3HSmBzi69lbDRhe/f69lCXLQDRnpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iVHaBX5H; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iVHaBX5H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0C6B1F000FF;
+	Wed,  9 Sep 2026 18:12:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788977527;
+	bh=66ShHtkoMTqityLdxEunWRMs889mzaL4MtS8HVOIhP4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iVHaBX5Hxhx6vTNrkbqFgFE5mWoktO8KBSBgb7yjYEJRgSwGtggnfROuprHtTtOhY
+	 Lz+1RmzSkRnMiU7S9PyG9gbAau90MTg5oxM5VVklzeLDGZnJMmgJI3/Q3Rj4kPk0+9
+	 WGLQWxYvKlumW6Q6YOsFNSqUSLXvcwtj2wf+QaqayvGwFFPr/zijE06YcHPBN1vvAM
+	 qTnaJLqhv/wSbIECP2kre2qqh00K2kQ/tfibhliDhUOFB17Va8S4fzQCxNm5ln/1Ti
+	 5M+HMQ/I4SQ+3mqrirXLwzTJZj0l+VwtWpe10tJIUb6tuxC9C5JqYVgjvWk0KgpQV9
+	 PH7mu3fzQk2vQ==
+Date: Wed, 9 Sep 2026 19:12:01 +0100
+From: Simon Horman <horms@kernel.org>
+To: Esteban Urrutia <esteuwu@proton.me>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>,
+	Bjorn Andersson <andersson@kernel.org>,
+	Konrad Dybcio <konradybcio@kernel.org>,
+	Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org,
+	netdev@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org,
+	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: Re: [PATCH v2 0/3] SM8450 IPA support
+Message-ID: <20260909181201.GL40544@horms.kernel.org>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+ <fa9794e3-d79e-4d77-8166-492d992154b4@proton.me>
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fa9794e3-d79e-4d77-8166-492d992154b4@proton.me>
+
+On Wed, Sep 09, 2026 at 03:12:51AM +0000, Esteban Urrutia wrote:
+> On 9/9/26 12:10 AM, Esteban Urrutia wrote:
+> > This series has been tested on the following SoCs:
+> > - SM7475
+> > - SM8450
+> > - SM8475
+> > In these the modem works as expected and no crashes occur.
+> 
+> I forgot to mention that this series depends on the following patch:
+> https://lore.kernel.org/all/20260909-ipa-modem-drop-v1-1-0c9664f09c4a@proton.me/
+
+Our CI isn't smart enough to pick up dependencies.
+So you'll need to repost once that patch is present in net-next.
+As is, patch 2/3 fails to build.
+
+Also, I think the patch-set needs to be split up somehow
+so the networking portions can be accepted into net-next
+while the other patches go via a different subsystem.
+
+For the net-next portion, please set the target tree in the subject
+like this:
+
+Subject: [PATCH v3 net-next] ...
+
+For more information on the Netdev development process, please see:
+https://docs.kernel.org/process/maintainer-netdev.html
+
+-- 
+pw-bot: changes-requested
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71553B3C05
+	for <devicetree@vger.kernel.org>; Wed,  9 Sep 2026 19:06:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788980807; cv=none; b=FO0NHrGo6XArYmxHeq7oqu/i2GI+kIFw7YEbaf56M9hQjVtuVC4EwR6YvOU+67qTEH22qEz/gKl7cCClf6mcrc3kuNesgePKSnuJCkipZH73ViPL99H8SpP99hq4jmujRrKYi3cjDNGjYjkfiDLHxckNzVgUjmyeWnBVsOeiS8c=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788980807; c=relaxed/simple;
+	bh=YyKjRrENa2jqYzkE6b4VaoAexwD0Vzx+ljnaN+l9AoY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rcqcVTcSm5OV7hi2YXt3fbxcdiLzoEX8j5YyzeigHlEQVSt/Asq1xn9ROcbABeZR1zQNhOEAGoSdVZx4Ci1RKCa06gR4V2Hjb+duIyUn3562it6HPfVC6RGL63lRzzvxuJtHQdpLjw8426F5Zqpyd1IlrgEooBt/n7Zppgdv/Sc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=RqIh4aSJ; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=HcOIS6X5; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="RqIh4aSJ";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="HcOIS6X5"
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 689IgPPv3140629
+	for <devicetree@vger.kernel.org>; Wed, 9 Sep 2026 19:06:44 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=qcppdkim1; bh=E+XR1BMyDeEa9EYabyzY1b90
+	OSvHsAhw5WOfhsjMWEA=; b=RqIh4aSJsBJJhjQyyoERwKmDQV68nY9nu4gVPW54
+	QxRKxjktF72bnvsW1vVXVgFg3maNHa2Scc0M8dyHs3jrwZboRe0e/qe7kDnYViMZ
+	CTI3a2ILQhvK6FO5QD3iOOr+KNfcAaejM0uI5onDZ5jeM857kQ2w2Ill/ww0Wue0
+	Dxk6PH7QWVc70HgSSJJYNPDhHJ9zjOxKSP9wOBs+ZUp7LXH7QCG3uqcNLu0ZHQfq
+	M0jo/FA8A1fbunmyU847R3NtoxT9+vDuA6DKSKJaN+RzN+bYYg9IQ4Ur3DH8YfGk
+	W3yRKoNPT4UJ+34dXnDGwhucivzGuZhgx+aHX8R7Zxp/dA==
+Received: from mail-ua1-f72.google.com (mail-ua1-f72.google.com [209.85.222.72])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gkcyg03h1-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <devicetree@vger.kernel.org>; Wed, 09 Sep 2026 19:06:44 +0000 (GMT)
+Received: by mail-ua1-f72.google.com with SMTP id a1e0cc1a2514c-9829a8b46a7so142772241.0
+        for <devicetree@vger.kernel.org>; Wed, 09 Sep 2026 12:06:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1788980804; x=1789585604; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=E+XR1BMyDeEa9EYabyzY1b90OSvHsAhw5WOfhsjMWEA=;
+        b=HcOIS6X59heNTsfLP6aSfLGAaKVSJXvSOk+zowmdge7gHLEwd6I2wd/Lq2wW+xWpjd
+         6CKGOrK+E9kkzjyb5KsU3KNdoTD0yN1o7U3ei43jBS5q/UM9cEc40tDyj/pZ9pW+FWey
+         nXrD2EpxF4nMlrCG2tK7udxIUGTlL7wIk3V8DLZF/Fop2c9NZDDrQ4/BvOggg5lhspLu
+         2OqApc79HdqGNfKWJppg4hrssUI1XZZ/6rqbfsBSd88+hXKBkV+daKvEEybbqAMpZBjt
+         4t1gLNxGH8Hzl35wXuG1rOOEuXgyDbQ82msvdzMKx74YQYUUJmS6MvlfCqSA6v/Ad93f
+         4pXw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788980804; x=1789585604;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=E+XR1BMyDeEa9EYabyzY1b90OSvHsAhw5WOfhsjMWEA=;
+        b=ZA3qgO0N/Bpq+mWsJjaBXWP/WlGbu2Y0fa96Tp8vkcXJ3b4bgiNWAWuivfeyfdgGCm
+         6AOlnd4Foo+TFHxXFZzkvExoR2vecbE6nNnLAgw2FqjVTef+tbm/s/06qCyDP4a+DSGQ
+         w1csOhOQF0PWl/6T3Co8Lu4uLVzNguSeNO9yQJfe0RmnvZPP82a05fi+5GX53XvPAF50
+         qv+AdaCRl2eP91noATochuNI+gfdqpKgGXYitJF2npNo8nLiu3QJP867PusVoX280vrN
+         K08kJvqePdkcrkRjgtPOCxlUL58mBUwzw1HvOP+Zn+YphB9SgHwffYNVOxZHB22lOd/r
+         nk8A==
+X-Forwarded-Encrypted: i=1; AKwUvBzwdlUkaOSjazm3PAJiUxKDjS6dxpELfl4RgdCGMuX64HC6p8x2amu8bvWdym2Ivo0XyvoYD41zcLU8@vger.kernel.org
+X-Gm-Message-State: AFuF++krCLNmRdDZTDD4wXDYHR0uthMculhmZd/Q13m0yF9ijKKnz6Uc
+	RJaayXBS0IILhtwCEMfCOudH0wkSozXYnlw7bYAxloY9jEUpyKEpKSE1+VC5OxpA7zqxkPwGOGJ
+	yDSN4eirDQSHUVPFa6SGTSSgV2PueW2qC00uYzXcL0Jzyn+wmHzBAXzoLkFg9ozes
+X-Gm-Gg: AYBFou12N5knRZJAR2BBUPCo6ZglgGdUOg4qN9/1NHO2T1VLSa1kMCfAXWUZO4V48NX
+	9TekObf3YaKhkS0ySWKDRpIkys14+Hdkyb31L8/ZDwTM3/LFbnJK+u2ZGKLCWpppV+ws1P/Dz6S
+	UXqKx8xtroSlO4RAkRHQZ3qQmePnb5MCJnhBoyZ2r2nEz/rZHWixZdcDk/F7s0JbJ34Xd+MEsC4
+	4iUMemfMQiqF9zI48nqeXXjP4aQOjclnRbRO2Wf10nRZzRGuLRv3apm4WsM2KjDsFveqQFYABSg
+	CIGggMtBRsZRwpZF3MxyuUYVFD05atZn49tUKF7g1sYAmMqqS34WArbajghFhFaIIuvrriW2tNW
+	u3Lj1Pxak4I3x7jFPolOBn/BRuQJYMIL1H0Q6bcrO0EqXPyyc4Q+2b3jS5zLj0CHyXeXWABj9kw
+	aSGUyRSz+bKymN
+X-Received: by 2002:a05:6102:4191:b0:76f:eaa2:6fa7 with SMTP id ada2fe7eead31-79075874992mr2261908137.2.1788980803720;
+        Wed, 09 Sep 2026 12:06:43 -0700 (PDT)
+X-Received: by 2002:a05:6102:4191:b0:76f:eaa2:6fa7 with SMTP id ada2fe7eead31-79075874992mr2261880137.2.1788980803233;
+        Wed, 09 Sep 2026 12:06:43 -0700 (PDT)
+Received: from umbar.lan (2001-14ba-a073-af00-264b-feff-fe8b-be8a.rev.dnainternet.fi. [2001:14ba:a073:af00:264b:feff:fe8b:be8a])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b61669aedesm4079194e87.10.2026.09.09.12.06.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 09 Sep 2026 12:06:40 -0700 (PDT)
+Date: Wed, 9 Sep 2026 22:06:38 +0300
+From: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+To: Esteban Urrutia <esteuwu@proton.me>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>,
+        Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konradybcio@kernel.org>,
+        Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org,
+        netdev@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] arm64: dts: qcom: sm8450: Add IPA node
+Message-ID: <kirwxhjjskimczzf7fv6go5b4j27qouqvj27n7vckd4vkr3rkd@tf2ugwqbp3kc>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+ <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me>
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me>
+X-Authority-Analysis: v=2.4 cv=YZYodARf c=1 sm=1 tr=0 ts=6aa1ae44 cx=c_pps
+ a=ULNsgckmlI/WJG3HAyAuOQ==:117 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
+ a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_glEPmIy2e8OvE2BGh3C:22 a=pGLkceISAAAA:8
+ a=yJmHqWV7plCzNz9V06cA:9 a=IT5BngQnVUfANsGC:21 a=CjuIK1q_8ugA:10
+ a=1WsBpfsz9X-RYQiigVTh:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA5MDIxMyBTYWx0ZWRfX7uFUnH+39E80
+ +AvzhRwItZOdBshAR03JAH4auwxIKgMRrvwJNE0jnPhKUeUk+NqHB1E7EThVaIhg9sITxo7kfXZ
+ OsXqS+ZNPEsM4oggEa29+d+GrqVhXL0=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA5MDIxMyBTYWx0ZWRfXzPHuQjhQGN4w
+ A8MKnKjxKCzY3GY85NQcDOgWVNtU/MpFFKQy3mFvd1Hb83O3bSye8Lqfpgd7hEwsD1eUHk+V/00
+ bWI7IuEWPws33DBHiDIDO3imy0nP8Dc/x1XRu1Nf633paS3by8qWy2BOC6g0DmcNCHRgq0pKNDO
+ eHrN7ZR7ZYOppp+6BYwE9sg6QbF5wdYfy4BusPfbmpun8vK899/X+x7IZKMoXrDVgsuve9PvKBW
+ 4CHhxmYtxAY59t7mgTNTjfnwGZWK35pMN/fPCset02SpXt8OwpKaG2fDj7qj8fJZiaN/vlBJWy6
+ z5Phbp+NSQsh/AYt06mBebEQn4AAzIEgjEMwcnkNHeikZ/SrxAze8ElzKfsCregTfGjCPNbXRNr
+ QbrKeyyTv6W0BuqRGrsgXAX3zPShnGSPDFS6/OuNJCbX7rxAGulug+Fb/pt7Lz17jx9sUh4pWDE
+ uOXqIx8RLXi4cUxX/dA==
+X-Proofpoint-GUID: eLTNsSYi6G1RP9wXEpReaBhmeO6JkMOE
+X-Proofpoint-ORIG-GUID: eLTNsSYi6G1RP9wXEpReaBhmeO6JkMOE
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-08_03,2026-09-09_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 suspectscore=0 lowpriorityscore=0 impostorscore=0 adultscore=0
+ bulkscore=0 phishscore=0 spamscore=0 clxscore=1015 priorityscore=1501
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609090213
+
+On Wed, Sep 09, 2026 at 03:11:39AM +0000, Esteban Urrutia wrote:
+> Add the description of the IPA block in the SM8450 SoC.
+> 
+> Co-developed-by: Nazar Kompanets <xlie7669@gmail.com>
+> Signed-off-by: Nazar Kompanets <xlie7669@gmail.com>
+> Signed-off-by: Esteban Urrutia <esteuwu@proton.me>
+> ---
+>  arch/arm64/boot/dts/qcom/sm8450.dtsi | 59 +++++++++++++++++++++++++++++++-----
+>  1 file changed, 52 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm64/boot/dts/qcom/sm8450.dtsi b/arch/arm64/boot/dts/qcom/sm8450.dtsi
+> index b8793482b181..95b6fd22a846 100644
+> --- a/arch/arm64/boot/dts/qcom/sm8450.dtsi
+> +++ b/arch/arm64/boot/dts/qcom/sm8450.dtsi
+> @@ -2625,6 +2625,47 @@ adreno_smmu: iommu@3da0000 {
+>  			dma-coherent;
+>  		};
+>  
+> +		ipa: ipa@3f40000 {
+> +			compatible = "qcom,sm8450-ipa";
+> +
+> +			reg = <0 0x3f40000 0 0x10000>,
+> +			      <0 0x3f50000 0 0x5000>,
+> +			      <0 0x3e04000 0 0xfc000>;
+> +			reg-names = "ipa-reg",
+> +				    "ipa-shared",
+> +				    "gsi";
+> +			iommus = <&apps_smmu 0x5c0 0x0>,
+> +				 <&apps_smmu 0x5c2 0x0>;
+> +
+> +			interrupts-extended = <&intc GIC_SPI 654 IRQ_TYPE_EDGE_RISING>,
+> +					      <&intc GIC_SPI 432 IRQ_TYPE_LEVEL_HIGH>,
+> +					      <&ipa_smp2p_in 0 IRQ_TYPE_EDGE_RISING>,
+> +					      <&ipa_smp2p_in 1 IRQ_TYPE_EDGE_RISING>;
+> +			interrupt-names = "ipa",
+> +					  "gsi",
+> +					  "ipa-clock-query",
+> +					  "ipa-setup-ready";
+> +
+> +			clocks = <&rpmhcc RPMH_IPA_CLK>;
+> +			clock-names = "core";
+> +
+> +			interconnects = <&aggre2_noc MASTER_IPA 0 &mc_virt SLAVE_EBI1 0>,
+> +					<&gem_noc MASTER_APPSS_PROC 0 &config_noc SLAVE_IPA_CFG 0>;
+> +			interconnect-names = "memory",
+> +					     "config";
+> +
+> +			qcom,qmp = <&aoss_qmp>;
+> +
+> +			qcom,smem-states = <&ipa_smp2p_out 0>,
+> +					   <&ipa_smp2p_out 1>;
+> +			qcom,smem-state-names = "ipa-clock-enabled-valid",
+> +						"ipa-clock-enabled";
+> +
+> +			sram = <&ipa_modem_tables>;
+
+No qcom,gsi-loader / memory-region ?
+
+> +
+> +			status = "disabled";
+> +		};
+> +
+>  		usb_1_hsphy: phy@88e3000 {
+>  			compatible = "qcom,sm8450-usb-hs-phy",
+>  				     "qcom,usb-snps-hs-7nm-phy";
+
+
+Also the device is disabled by default. On which platform did you enable
+it? Is it supported upstream?
+
+-- 
+With best wishes
+Dmitry
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from mail-10629.protonmail.ch (mail-10629.protonmail.ch [79.135.106.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8146C3C584A;
+	Wed,  9 Sep 2026 21:04:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.29
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788987863; cv=none; b=Z42SBwDXPX6RXYcRUqEuy3LY9F5Xp1w6TqvoN5yBdbNzXHFueJlEwEUZTTDY7OQq7E1mfHm4ktyuGLMt0OjV+xsTE4rDSukaXDNp1D0n6aKerafWZg8UAvZlp0I+HKENn/s8DKyehGQuToVazJnV3SRnQMEfX/QF8Y2/eQ/8Wfg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788987863; c=relaxed/simple;
+	bh=ux4LwqZlbuHjN5pDgf+R+mKnPiisvTQFqDbT/x5yXuE=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dAbB7JjXvQp8nAs/lt/s973W0BFrP4tX88qjCoeiU+QDQGJqz7zf3I85OjxSHMgk6lgld0dkOwRs9p/vEz7EQVuA964QTdLHbGuk+g+F6xCo5zeN1j/Lc2BkRsjZxDyFDWzcDrYfdhtX6UO+CVj8djMjp93FovjCUJurbgEW3XI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=kflyLVDU; arc=none smtp.client-ip=79.135.106.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="kflyLVDU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=2yofm2bllvcebmrjy3frax4z3q.protonmail; t=1788987854; x=1789247054;
+	bh=P91JSApwUvPyWA9CkkLfouUbbAesRpLSdan/W/e1NLc=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=kflyLVDUd+HQMXYvAACOjgkarCgP+mmFkRMoSd9fUdmqTUY1pbe7/o+bZjzhKNEs1
+	 GsiXJ2VniwDyxkYH5twLDlQl3Jenxb6RZdPHmnZnN01XcTEjvRK9qTH7bWFT8SwL6D
+	 YBdDibUGVVPY/gRznESkCYqozO8+Ph1CCfdVRYyWcLl7h3wv7Wivdabk50pdzlm9Bh
+	 9xfhunZH79+W1j/Gko1RuKmQrhY+1CGQshIIf9IsM/De6yDTdaYP4RUmi23VUghx6G
+	 os8sL2x+Y1z1V61EeiETk5ZQOGNGRXRBOWL/krHoV2iXMmwTTtgJBBhaYtx46mf7wm
+	 Jewj0gYlYHNvg==
+Date: Wed, 09 Sep 2026 21:04:05 +0000
+To: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+From: Esteban Urrutia <esteuwu@proton.me>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Alex Elder <elder@kernel.org>, Bjorn Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>, Nazar Kompanets <xlie7669@gmail.com>, linux-arm-msm@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, phone-devel@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] arm64: dts: qcom: sm8450: Add IPA node
+Message-ID: <530a28fb-28da-4ee0-9c77-6bac7ea6c047@proton.me>
+In-Reply-To: <kirwxhjjskimczzf7fv6go5b4j27qouqvj27n7vckd4vkr3rkd@tf2ugwqbp3kc>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me> <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me> <kirwxhjjskimczzf7fv6go5b4j27qouqvj27n7vckd4vkr3rkd@tf2ugwqbp3kc>
+Feedback-ID: 147889766:user:proton
+X-Pm-Message-ID: d485751c4d99f1bb18b42b75c245d66e48bc113a
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 9/9/26 4:06 PM, Dmitry Baryshkov wrote:
+>> diff --git a/arch/arm64/boot/dts/qcom/sm8450.dtsi b/arch/arm64/boot/dts/=
+qcom/sm8450.dtsi
+>> index b8793482b181..95b6fd22a846 100644
+>> --- a/arch/arm64/boot/dts/qcom/sm8450.dtsi
+>> +++ b/arch/arm64/boot/dts/qcom/sm8450.dtsi
+>> @@ -2625,6 +2625,47 @@ adreno_smmu: iommu@3da0000 {
+>>  =09=09=09dma-coherent;
+>>  =09=09};
+>>
+>> +=09=09ipa: ipa@3f40000 {
+>> +=09=09=09compatible =3D "qcom,sm8450-ipa";
+>> +
+>> +=09=09=09reg =3D <0 0x3f40000 0 0x10000>,
+>> +=09=09=09      <0 0x3f50000 0 0x5000>,
+>> +=09=09=09      <0 0x3e04000 0 0xfc000>;
+>> +=09=09=09reg-names =3D "ipa-reg",
+>> +=09=09=09=09    "ipa-shared",
+>> +=09=09=09=09    "gsi";
+>> +=09=09=09iommus =3D <&apps_smmu 0x5c0 0x0>,
+>> +=09=09=09=09 <&apps_smmu 0x5c2 0x0>;
+>> +
+>> +=09=09=09interrupts-extended =3D <&intc GIC_SPI 654 IRQ_TYPE_EDGE_RISIN=
+G>,
+>> +=09=09=09=09=09      <&intc GIC_SPI 432 IRQ_TYPE_LEVEL_HIGH>,
+>> +=09=09=09=09=09      <&ipa_smp2p_in 0 IRQ_TYPE_EDGE_RISING>,
+>> +=09=09=09=09=09      <&ipa_smp2p_in 1 IRQ_TYPE_EDGE_RISING>;
+>> +=09=09=09interrupt-names =3D "ipa",
+>> +=09=09=09=09=09  "gsi",
+>> +=09=09=09=09=09  "ipa-clock-query",
+>> +=09=09=09=09=09  "ipa-setup-ready";
+>> +
+>> +=09=09=09clocks =3D <&rpmhcc RPMH_IPA_CLK>;
+>> +=09=09=09clock-names =3D "core";
+>> +
+>> +=09=09=09interconnects =3D <&aggre2_noc MASTER_IPA 0 &mc_virt SLAVE_EBI=
+1 0>,
+>> +=09=09=09=09=09<&gem_noc MASTER_APPSS_PROC 0 &config_noc SLAVE_IPA_CFG =
+0>;
+>> +=09=09=09interconnect-names =3D "memory",
+>> +=09=09=09=09=09     "config";
+>> +
+>> +=09=09=09qcom,qmp =3D <&aoss_qmp>;
+>> +
+>> +=09=09=09qcom,smem-states =3D <&ipa_smp2p_out 0>,
+>> +=09=09=09=09=09   <&ipa_smp2p_out 1>;
+>> +=09=09=09qcom,smem-state-names =3D "ipa-clock-enabled-valid",
+>> +=09=09=09=09=09=09"ipa-clock-enabled";
+>> +
+>> +=09=09=09sram =3D <&ipa_modem_tables>;
+>=20
+> No qcom,gsi-loader / memory-region ?
+
+Right. I forgot about this change. I'll add those in v3.
+
+>> +
+>> +=09=09=09status =3D "disabled";
+>> +=09=09};
+>> +
+>>  =09=09usb_1_hsphy: phy@88e3000 {
+>>  =09=09=09compatible =3D "qcom,sm8450-usb-hs-phy",
+>>  =09=09=09=09     "qcom,usb-snps-hs-7nm-phy";
+>=20
+>=20
+> Also the device is disabled by default. On which platform did you enable
+> it? Is it supported upstream?
+
+Yes, as it should be. It has currently been tested as working in:
+- sm7475-realme-senna
+- sm8450-oneplus-negroni
+- sm8475-motorola-bronco
+None of these devices have device trees upstreamed at the moment.
+I plan on eventually upstreaming support for motorola-bronco.
+
+Regards,
+Esteban
+
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34F3385D68
+	for <devicetree@vger.kernel.org>; Thu, 10 Sep 2026 03:11:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789009920; cv=none; b=QhCfoeZqFFBI0aDWSOenEjnv58RUv+w0X4iJPH6TpaYAB6MsGzrL0qtzOnUU+mFYPPoGHE+PVY8/VNEtaPVm2OU2M2qeNz8RMxcHRApzUJf54UGYr9r835QOr+6CVL0f0keV6qgQg+r+r6QCVY+N8olblW637+UIEpRmXVSX3R4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789009920; c=relaxed/simple;
+	bh=a5bd7NwlaErNyrh5B/iLgDgmSb0cD11kHXJJXAfNKx4=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=H7jr5/OZzfdYSxZFlxHjVFIMJ9mReZRHFMiw7Y6b3NDsZJyIcsVg2hEe95PLZiM/HRLl8JrZVeO4r41Oyb8DWVaIE7nEptHkU4DbVu4zrEFSqqZHng06jZApIxm472+E5MtbiunLEtKjyauiWt6JMOYaDwqNdikADAiO5uBfxsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=leosDmEK; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="leosDmEK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 501301F000FF;
+	Thu, 10 Sep 2026 03:11:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789009918;
+	bh=OGvEJnYfC8JDpWrXG1psIzyyBQzuyE7D7fW09kY2FjI=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=leosDmEKhVOSonhjNHhzUQVAIJeXYIuc8ntMevMxddZfnO0bG02RglxxI7sIlQTLr
+	 lgLKfalCC7aHf8h/w+7kl3fEhbR7zQZVRc6K6RC8JmDsWq+ZrnbJ6ov4RaeaUPaD6G
+	 7XfYQzqT2jdzBidIo2SVrGCBvGsamUzJc8r3dB7YQnqk3aqTDg7ZQwXlofUWhpoIjK
+	 98LsFKhq/NNJAezGI50MPLsUAGPtoGi9wVzkzy/FDMwtv8UlJpwuG3gOTNGUiibYGt
+	 eIedYddz8kvsO3z1ten8qyU8V6pUuBeavoRa8anF/TTWQv51s3alBmr4MjVng7fTYu
+	 hItAIK9PoQt6Q==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2 2/3] net: ipa: Add IPA v5.1 configuration data
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Esteban Urrutia" <esteuwu@proton.me>
+Cc: devicetree@vger.kernel.org, robh@kernel.org, conor+dt@kernel.org
+In-Reply-To: <20260909-sm8450-ipa-v2-2-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+ <20260909-sm8450-ipa-v2-2-2deb8b4e91a5@proton.me>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 10 Sep 2026 03:11:57 +0000
+Message-Id: <20260910031158.501301F000FF@smtp.kernel.org>
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+s) to consider:
+- [High] The canaries for the IPA_MEM_STATS_FILTER_ROUTE memory region over=
+lap with the IPA_MEM_STATS_TETHERING memory region, causing data corruption.
+- [High] The IPA_ENDPOINT_AP_MODEM_RX endpoint is incorrectly assigned to t=
+he DST_UL resource group instead of DST_DL.
+- [Low] Undeclared identifier 'IPA_MEM_MODEM_STATS_DROP' causes a compilati=
+on error.
+--
+
+commit 072920040c7663b1214df96432603178023826d5
+Author: Esteban Urrutia <esteuwu@proton.me>
+
+net: ipa: Add IPA v5.1 configuration data
+
+This commit adds the configuration data required for IPA v5.1, which is
+used in the Qualcomm SM8450 SoC.
+
+> diff --git a/drivers/net/ipa/data/ipa_data-v5.1.c b/drivers/net/ipa/data/=
+ipa_data-v5.1.c
+> new file mode 100644
+> index 0000000000000..7d7bc193b774c
+> --- /dev/null
+> +++ b/drivers/net/ipa/data/ipa_data-v5.1.c
+> @@ -0,0 +1,476 @@
+> +// SPDX-License-Identifier: GPL-2.0
+[ ... ]
+> +/* Endpoint configuration data for an SoC having IPA v5.1 */
+> +static const struct ipa_gsi_endpoint_data ipa_gsi_endpoint_data[] =3D {
+[ ... ]
+> +	[IPA_ENDPOINT_AP_MODEM_RX] =3D {
+> +		.ee_id		=3D GSI_EE_AP,
+> +		.channel_id	=3D 1,
+> +		.endpoint_id	=3D 23,
+> +		.toward_ipa	=3D false,
+> +		.channel =3D {
+> +			.tre_count	=3D 256,
+> +			.event_count	=3D 256,
+> +			.tlv_count	=3D 9,
+> +		},
+> +		.endpoint =3D {
+> +			.config =3D {
+> +				.resource_group	=3D IPA_RSRC_GROUP_DST_UL,
+
+[Severity: High]
+Is the AP_MODEM_RX endpoint incorrectly assigned to the DST_UL resource gro=
+up
+instead of DST_DL?
+
+Looking at the destination resource limits in ipa_resource_dst, it appears
+DST_DL is allocated 5 data sectors that remain completely unused by any
+endpoint. Meanwhile, DST_UL has only 6 data sectors but must handle both
+LAN_RX and MODEM_RX traffic.
+
+Will this cause resource starvation for both datapaths under load?
+
+[ ... ]
+> +/* Destination resource configuration data for an SoC having IPA v5.1 */
+> +static const struct ipa_resource ipa_resource_dst[] =3D {
+> +	[IPA_RESOURCE_TYPE_DST_DATA_SECTORS] =3D {
+> +		.limits[IPA_RSRC_GROUP_DST_UL] =3D {
+> +			.min =3D 6,	.max =3D 6,
+> +		},
+> +		.limits[IPA_RSRC_GROUP_DST_DL] =3D {
+> +			.min =3D 5,	.max =3D 5,
+> +		},
+
+[ ... ]
+> +/* IPA-resident memory region data for an SoC having IPA v5.1 */
+> +static const struct ipa_mem ipa_mem_local_data[] =3D {
+[ ... ]
+> +	{
+> +		.id		=3D IPA_MEM_STATS_TETHERING,
+> +		.offset		=3D 0x2910,
+> +		.size		=3D 0x03c0,
+> +		.canary_count	=3D 0,
+> +	},
+> +	{
+> +		.id		=3D IPA_MEM_STATS_FILTER_ROUTE,
+> +		.offset		=3D 0x2cd0,
+> +		.size		=3D 0x0ba0,
+> +		.canary_count	=3D 2,
+> +	},
+
+[Severity: High]
+Is there a risk of memory layout overlap corrupting the tethering statistic=
+s?
+
+During initialization in ipa_mem_config(), the driver writes canary values
+(0xdeadbeef) before each region's offset. Since IPA_MEM_STATS_FILTER_ROUTE
+starts at 0x2cd0 and has a canary_count of 2, eight bytes of canaries will =
+be
+written to 0x2cc8 through 0x2ccf.
+
+However, the IPA_MEM_STATS_TETHERING region spans from 0x2910 to 0x2cd0
+(size 0x03c0). Can we expect the last 8 bytes of the tethering stats
+memory to be overwritten by the next region's canaries?
+
+[ ... ]
+> +	{
+> +		.id		=3D IPA_MEM_MODEM_STATS_DROP,
+> +		.offset		=3D 0x4fe8,
+> +		.size		=3D 0x0018,
+> +		.canary_count	=3D 0,
+> +	},
+> +};
+
+[Severity: Low]
+Could this result in a compilation error?
+
+It appears that IPA_MEM_MODEM_STATS_DROP is not defined in enum ipa_mem_id,
+which would lead to a build failure.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260909-sm8450-ipa=
+-v2-0-2deb8b4e91a5@proton.me?part=3D2
+
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B007A380FF5
+	for <devicetree@vger.kernel.org>; Thu, 10 Sep 2026 03:11:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789009920; cv=none; b=R20ioYXv8609VEUmc1hemlY/r6k63Q/CFvGqaer8aF4t4rz9UNIoMWcltWO4ob1e0SzVNMsbUPwvRw0fbTb+APzl8y5+QLf+0OnG5fHFiHGwWbhY5k8pkiE2L1KL1pmdqpndL18ve9D5s1r5REvEFLGxbo+jInWxp3PkllflEOk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789009920; c=relaxed/simple;
+	bh=wxu4inTJDKVHbU0Bj4Norit9ZIAgFyfkKxhs9tWja54=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=UT6CFP9N4FzHzVU1W68o8HRleVTeSDkswScKunwiy+fM8jD7hnvu6JZxLCOpW2MJRqn85h7VLOPi0ulPUAyO3F+ecAp1+XwGnAYWswk4eJESJSLRN/KR7cIgHjKpEQ6n3aI232a9BGOlnMzdcK+XSplLAdNCZuzneIJ6DhAq36A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FG9GXcYn; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FG9GXcYn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28B2E1F00898;
+	Thu, 10 Sep 2026 03:11:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789009919;
+	bh=T9LOOIzGKMg6rtMT5sc71inQC9bo5Wv1veZXjm4T3Ng=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=FG9GXcYnQEfQkkGiYwuAuq7jnUnFZdsQERGVKMNVWkptshH6emjTAgNS5iHEBOyTf
+	 qPLrc+k8kuQ0b1clOchUt/kPgNoZfcPYPiy7yzUsgnMfhZ9c1Mmh6YatNS+R7Cvch6
+	 nC7xjnq8FvMukY9n6jfM8l3tSScIIdT4remJo/Ok7zCEU49qU4iz/CXVsCZcTgySBY
+	 woRFqFQcxThzEA0RLHOIy143kt8VZmYCB4VF7aIg2TfPJoSwwEF3BxEXWIUstz/6C4
+	 0MknDvW6ADtnZwMK+4r2uZBfkBBYSfEYSHT3Z/+gxFnekQhWtv378EsJMULjbGIg+b
+	 47PU6usyo4uWA==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2 3/3] arm64: dts: qcom: sm8450: Add IPA node
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Esteban Urrutia" <esteuwu@proton.me>
+Cc: conor+dt@kernel.org, devicetree@vger.kernel.org, robh@kernel.org
+In-Reply-To: <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me>
+References: <20260909-sm8450-ipa-v2-0-2deb8b4e91a5@proton.me>
+ <20260909-sm8450-ipa-v2-3-2deb8b4e91a5@proton.me>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 10 Sep 2026 03:11:58 +0000
+Message-Id: <20260910031159.28B2E1F00898@smtp.kernel.org>
+Precedence: bulk
+X-Mailing-List: devicetree@vger.kernel.org
+List-Id: <devicetree.vger.kernel.org>
+List-Subscribe: <mailto:devicetree+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:devicetree+unsubscribe@vger.kernel.org>
+
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [Medium] The newly added `ipa` node is missing the `qcom,gsi-loader` and =
+`memory-region` properties, which violates the `qcom,ipa.yaml` device tree =
+binding schema and causes the driver to fail during probe.
+--
+
+commit dced093feda54c054d95c56e0362c394d8a7c590
+Author: Esteban Urrutia <esteuwu@proton.me>
+
+arm64: dts: qcom: sm8450: Add IPA node
+   =20
+Add the description of the IPA block in the SM8450 SoC.
+
+> diff --git a/arch/arm64/boot/dts/qcom/sm8450.dtsi b/arch/arm64/boot/dts/q=
+com/sm8450.dtsi
+> index b8793482b1815..95b6fd22a8465 100644
+> --- a/arch/arm64/boot/dts/qcom/sm8450.dtsi
+> +++ b/arch/arm64/boot/dts/qcom/sm8450.dtsi
+[ ... ]
+> @@ -2625,6 +2625,47 @@ adreno_smmu: iommu@3da0000 {
+>  			dma-coherent;
+>  		};
+> =20
+> +		ipa: ipa@3f40000 {
+> +			compatible =3D "qcom,sm8450-ipa";
+
+[Severity: Medium]
+The newly added ipa node appears to be missing the qcom,gsi-loader and
+memory-region properties. This violates the qcom,ipa.yaml device tree
+binding schema and causes the driver to fail during probe.
+
+If a board file enables this ipa node, the IPA driver's ipa_firmware_load()
+function will unconditionally attempt to fetch the firmware memory region v=
+ia
+of_reserved_mem_region_to_resource(). Without the memory-region property
+(which should reference the existing &ipa_fw_mem), this call returns an err=
+or
+and causes the driver probe to abort, leaving the IPA hardware completely
+unusable.
+
+Does this node need the qcom,gsi-loader and memory-region properties added =
+to
+ensure it validates correctly and probes successfully?
+
+> +
+> +			reg =3D <0 0x3f40000 0 0x10000>,
+> +			      <0 0x3f50000 0 0x5000>,
+> +			      <0 0x3e04000 0 0xfc000>;
+> +			reg-names =3D "ipa-reg",
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260909-sm8450-ipa=
+-v2-0-2deb8b4e91a5@proton.me?part=3D3
+
